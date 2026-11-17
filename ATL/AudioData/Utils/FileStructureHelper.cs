@@ -710,7 +710,7 @@ namespace ATL.AudioData
                                 int => BitConverter.GetBytes(0),
                                 uint => BitConverter.GetBytes((uint)0),
                                 ushort => BitConverter.GetBytes((ushort)0),
-                                byte => BitConverter.GetBytes((byte)0),
+                                byte => new byte[1],
                                 _ => value
                             };
                         }

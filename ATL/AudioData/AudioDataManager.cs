@@ -234,7 +234,7 @@ namespace ATL.AudioData
         public ISet<TagType> getAvailableMetas()
         {
             ISet<TagType> result = new HashSet<TagType>();
-            foreach (var tagType in from TagType tagType in Enum.GetValues(typeof(TagType))
+            foreach (var tagType in from TagType tagType in Enum.GetValues<TagType>()
                                     where HasMeta(tagType)
                                     select tagType)
             {
@@ -251,7 +251,7 @@ namespace ATL.AudioData
         public ISet<TagType> getSupportedMetas()
         {
             ISet<TagType> result = new HashSet<TagType>();
-            foreach (var tagType in from TagType tagType in Enum.GetValues(typeof(TagType))
+            foreach (var tagType in from TagType tagType in Enum.GetValues<TagType>()
                                     where isMetaSupported(tagType)
                                     select tagType)
             {
