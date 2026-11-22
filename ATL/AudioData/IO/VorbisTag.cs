@@ -282,7 +282,7 @@ namespace ATL.AudioData.IO
         }
 
         // FLAC-specific override to handle multiple tags being authorized (e.g. representing multiple artists with multiple ARTIST tags)
-        public new void SetMetaField(string ID, string data, bool readAllMetaFrames, string zone = DEFAULT_ZONE_NAME, byte tagVersion = 0, ushort streamNumber = 0, string language = "")
+        public void SetMetaField(string ID, string data, bool readAllMetaFrames, string zone = DEFAULT_ZONE_NAME, byte tagVersion = 0, ushort streamNumber = 0, string language = "", bool caseMatters = false)
         {
             // Finds the ATL field identifier
             Field supportedMetaID = getFrameMapping(zone, ID, tagVersion);
@@ -303,11 +303,11 @@ namespace ATL.AudioData.IO
                         targetData = tagData[supportedMetaID] + data;
                     }
                 }
-                base.SetMetaField(ID, targetData, readAllMetaFrames, zone, tagVersion, streamNumber, language);
+                base.SetMetaField(ID, targetData, readAllMetaFrames, zone, tagVersion, streamNumber, language, caseMatters: caseMatters);
             }
             else if (readAllMetaFrames && ID.Length > 0) // ...else store it in the additional fields Dictionary
             {
-                MetaFieldInfo fieldInfo = new MetaFieldInfo(getImplementedTagType(), ID, data, streamNumber, language, zone : zone);
+                MetaFieldInfo fieldInfo = new MetaFieldInfo(getImplementedTagType(), ID, data, streamNumber, language, zone : zone, caseMatters: caseMatters);
                 if (tagData.AdditionalFields.Contains(fieldInfo)) // Prevent duplicates
                 {
                     // If the value already exists, concatenate it with the new one (stores multiple values when implemented as successive additional fields)
@@ -415,7 +415,7 @@ namespace ATL.AudioData.IO
                 if (equalsIndex < 0) return IMetaDataIO.ReadStatus.KO;
 
                 reader.Seek(position + equalsIndex + 1, SeekOrigin.Begin);
-                string tagId = tagIdBuilder.ToString().ToUpper();
+                string tagId = tagIdBuilder.ToString();
 
                 if (tagId.Equals(PICTURE_METADATA_ID_NEW) || tagId.Equals(PICTURE_METADATA_ID_OLD))
                 {

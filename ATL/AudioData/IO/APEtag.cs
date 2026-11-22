@@ -266,7 +266,7 @@ namespace ATL.AudioData.IO
                             Utils.StripEndingZeroChars(
                                 Settings.DefaultTextEncoding.GetString(source.ReadBytes(frameDataSize)));
                         strValue = strValue.Replace('\0', Settings.InternalValueSeparator).Trim();
-                        SetMetaField(frameName.Trim().ToUpper(), strValue, readTagParams.ReadAllMetaFrames);
+                        SetMetaField(frameName.Trim(), strValue, readTagParams.ReadAllMetaFrames, caseMatters:false);
                     }
                     else // Pictures
                     {

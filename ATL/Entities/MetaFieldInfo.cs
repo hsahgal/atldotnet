@@ -11,7 +11,7 @@ namespace ATL
     /// <summary>
     /// Information describing a metadata field
     /// </summary>
-    public class MetaFieldInfo
+    public class MetaFieldInfo : IEquatable<MetaFieldInfo>
     {
         /// <summary>
         /// Origin of the field
@@ -103,6 +103,8 @@ namespace ATL
         /// </summary>
         public bool MarkedForDeletion { get; set; } = false;
 
+        private readonly StringComparison comparer;
+        
         // ---------------- CONSTRUCTORS
 
         /// <summary>
@@ -116,10 +118,12 @@ namespace ATL
         /// <param name="mime">MIME-type of the value</param>
         /// <param name="fileName">Associated file name</param>
         /// <param name="zone">File zone where the value is supposed to appear</param>
-        public MetaFieldInfo(MetaDataIOFactory.TagType tagType, string nativeFieldCode, string value = "", ushort streamNumber = 0, string language = "", string mime  = "", string fileName = "", string zone = "")
+        public MetaFieldInfo(MetaDataIOFactory.TagType tagType, string nativeFieldCode, string value = "", ushort streamNumber = 0, string language = "", string mime  = "", string fileName = "", string zone = "", bool caseMatters = true)
         {
             TagType = tagType; NativeFieldCode = nativeFieldCode; Value = value; StreamNumber = streamNumber; Language = language; MimeType = mime; FileName = fileName; Zone = zone;
+            comparer = caseMatters ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
         }
+
 
         /// <summary>
         /// Construct the structure by copying data from the given MetaFieldInfo object
@@ -128,6 +132,7 @@ namespace ATL
         public MetaFieldInfo(MetaFieldInfo info)
         {
             TagType = info.TagType; NativeFieldCode = info.NativeFieldCode; Value = info.Value; StreamNumber = info.StreamNumber; Language = info.Language; MimeType = info.MimeType; FileName = info.FileName; Zone = info.Zone; Origin = info.Origin;
+            comparer = info.comparer;
         }
 
         /// <summary>
@@ -160,7 +165,17 @@ namespace ATL
         /// <returns>String representation of the object</returns>
         public override string ToString()
         {
-            return 100 + (int)TagType + NativeFieldCode + Utils.BuildStrictLengthString(StreamNumber.ToString(), 5, '0', false) + Language + Zone;
+            var nativeFieldCode = NativeFieldCode;
+            var language = Language;
+            var zone = Zone;
+            if (comparer == StringComparison.OrdinalIgnoreCase)
+            {
+                nativeFieldCode = nativeFieldCode.ToUpperInvariant();
+                language = language.ToUpperInvariant();
+                zone = zone.ToUpperInvariant();
+            }
+            
+            return 100 + (int)TagType + nativeFieldCode + Utils.BuildStrictLengthString(StreamNumber.ToString(), 5, '0', false) + language + zone;
         }
 
         /// <summary>
@@ -185,8 +200,11 @@ namespace ATL
             // Actually check the type, should not throw exception from Equals override
             if (obj.GetType() != this.GetType()) return false;
 
-            // Call the implementation from IEquatable
-            return this.ToStringWithoutZone().Equals(((MetaFieldInfo)obj).ToStringWithoutZone(), StringComparison.InvariantCultureIgnoreCase);
+            var other = (MetaFieldInfo)obj;
+            return (TagType == other.TagType)
+                && (string.Compare(NativeFieldCode, other.NativeFieldCode, comparer) == 0)
+                && (StreamNumber == other.StreamNumber) 
+                && (string.Compare(Language, other.Language, comparer) == 0); 
         }
 
         /// <summary>
@@ -199,11 +217,36 @@ namespace ATL
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
 
-            bool result = MetaDataIOFactory.TagType.ANY == obj.TagType && obj.NativeFieldCode.Equals(this.NativeFieldCode, StringComparison.InvariantCultureIgnoreCase);
+            bool result = MetaDataIOFactory.TagType.ANY == obj.TagType 
+                && obj.NativeFieldCode.Equals(this.NativeFieldCode, comparer);
             if (obj.StreamNumber > 0) result = result && obj.StreamNumber == this.StreamNumber;
-            if (obj.Language.Length > 0) result = result && obj.Language.Equals(this.Language);
+            if (obj.Language.Length > 0) result = result && obj.Language.Equals(this.Language, comparer);
 
             return result;
+        }
+
+        /// <summary>
+        /// Compare with the given object
+        /// </summary>
+        /// <param name="other">Object to compare with</param>
+        /// <returns>Result of the comparison as per Equals convention</returns>
+        public bool Equals(MetaFieldInfo other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return (TagType == other.TagType)
+                && (string.Compare(NativeFieldCode, other.NativeFieldCode, comparer) == 0)
+                && (StreamNumber == other.StreamNumber) 
+                && (string.Compare(Language, other.Language, comparer) == 0) 
+                && (string.Compare(Zone, other.Zone, comparer) == 0); 
         }
 
         /// <summary>
@@ -213,14 +256,42 @@ namespace ATL
         /// <returns>Result of the comparison as per Equals convention</returns>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
+            if (obj is null)
+            {
+                return false;
+            }
 
-            // Actually check the type, should not throw exception from Equals override
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
 
-            // Call the implementation from IEquatable
-            return this.ToString().Equals(obj.ToString());
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((MetaFieldInfo)obj);
+        }
+
+        public static bool Equals(MetaFieldInfo left, MetaFieldInfo right)
+        {
+            if (left is null && right is null) return true;
+            if (left is null || right is null) return false;
+            
+            if (ReferenceEquals(left, right)) return true;
+            
+            return left.Equals(right);
+        }
+        
+        public static bool operator ==(MetaFieldInfo left, MetaFieldInfo right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(MetaFieldInfo left, MetaFieldInfo right)
+        {
+            return !Equals(left, right);
         }
     }
 }

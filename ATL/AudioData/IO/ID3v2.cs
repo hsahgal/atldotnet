@@ -1910,8 +1910,8 @@ namespace ATL.AudioData.IO
                 value = value[..tagHeader.TextFieldSizeRestriction];
             }
 
-            if (frameCode.Length < 5) frameCode = frameCode.ToUpper(); // Only capitalize standard ID3v2 fields -- TODO : Use TagData.Origin property !
             var actualFrameCode = frameCode; // Used for writing TXXX frames
+            if (frameCode.Length < 5) frameCode = frameCode.ToUpper(); // Only capitalize standard ID3v2 fields -- TODO : Use TagData.Origin property !
 
             // If frame is only supported through Comment field, it has to be added through COMM frame
             if (commentsFields.Contains(frameCode))
@@ -1928,7 +1928,7 @@ namespace ATL.AudioData.IO
                 if (dotIdx > -1)
                 {
                     actualFrameCode = frameCode[(dotIdx + 1)..];
-                    frameCode = frameCode[..dotIdx];
+                    frameCode = frameCode[..dotIdx].ToUpper();
                 }
             }
             // If frame is not standard, it has to be added through TXXX frame ("user-defined text information frame")

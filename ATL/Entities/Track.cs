@@ -572,10 +572,10 @@ namespace ATL
             }
 
             // Deep copy
-            AdditionalFields = new Dictionary<string, string>();
+            AdditionalFields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (string key in metadata.AdditionalFields.Keys)
             {
-                AdditionalFields.Add(key, processString(metadata.AdditionalFields[key]));
+                AdditionalFields[key] = processString(metadata.AdditionalFields[key]);
             }
             initialAdditionalFields.Clear();
             foreach (string key in metadata.AdditionalFields.Keys) initialAdditionalFields.Add(key);
@@ -1068,7 +1068,7 @@ namespace ATL
                 foreach (var l in Lyrics) t.Lyrics.Add(new LyricsInfo(l));
             else t.Lyrics = null;
 
-            t.AdditionalFields ??= new Dictionary<string, string>();
+            t.AdditionalFields ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             t.AdditionalFields.Clear();
             if (AdditionalFields == null) return;
 
