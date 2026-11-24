@@ -266,7 +266,7 @@ namespace ATL.AudioData.IO
                             Utils.StripEndingZeroChars(
                                 Settings.DefaultTextEncoding.GetString(source.ReadBytes(frameDataSize)));
                         strValue = strValue.Replace('\0', Settings.InternalValueSeparator).Trim();
-                        SetMetaField(frameName.Trim(), strValue, readTagParams.ReadAllMetaFrames, caseMatters:false);
+                        SetMetaField(frameName.Trim(), strValue, readTagParams.ReadAllMetaFrames);
                     }
                     else // Pictures
                     {
@@ -428,7 +428,7 @@ namespace ATL.AudioData.IO
         {
             int nbFrames = 0;
             // Keep these in memory to prevent setting them twice using AdditionalFields
-            var writtenFieldCodes = new HashSet<string>();
+            var writtenFieldCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             // Picture fields (first before textual fields, since APE tag is located on the footer)
             foreach (PictureInfo picInfo in tag.Pictures.Where(isPictureWritable))
@@ -450,7 +450,7 @@ namespace ATL.AudioData.IO
                         {
                             string value = formatBeforeWriting(frameType, tag, map);
                             writeTextFrame(w, s, value);
-                            writtenFieldCodes.Add(s.ToUpper());
+                            writtenFieldCodes.Add(s);
                             nbFrames++;
                         }
                         break;
@@ -461,7 +461,7 @@ namespace ATL.AudioData.IO
             // Other textual fields
             foreach (MetaFieldInfo fieldInfo in tag.AdditionalFields.Where(isMetaFieldWritable))
             {
-                if (!writtenFieldCodes.Contains(fieldInfo.NativeFieldCode.ToUpper()))
+                if (!writtenFieldCodes.Contains(fieldInfo.NativeFieldCode))
                 {
                     writeTextFrame(w, fieldInfo.NativeFieldCode, FormatBeforeWriting(fieldInfo.Value));
                     nbFrames++;

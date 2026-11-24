@@ -1563,7 +1563,7 @@ namespace ATL.AudioData.IO
             IDictionary<string, Field> mapping = frameMapping_v24;
             if (3 == Settings.ID3v2_tagSubVersion) mapping = frameMapping_v23;
             // Keep these in memory to prevent setting them twice using AdditionalFields
-            var writtenFieldCodes = new HashSet<string>();
+            var writtenFieldCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             IDictionary<Field, string> stringMap = new Dictionary<Field, string>();
             foreach (var e in map) { stringMap[e.Key] = e.Value.Value; }
@@ -1578,7 +1578,7 @@ namespace ATL.AudioData.IO
 
                     string value = formatBeforeWriting(frameType, tag, stringMap);
                     writeTextFrame(w, s, value, tagEncoding, language: map[frameType].Language);
-                    writtenFieldCodes.Add(s.ToUpper());
+                    writtenFieldCodes.Add(s);
                     nbFrames++;
                     break;
                 }
@@ -1600,7 +1600,7 @@ namespace ATL.AudioData.IO
             // Other textual fields
             foreach (MetaFieldInfo fieldInfo in tag.AdditionalFields.Where(isMetaFieldWritable))
             {
-                if (!writtenFieldCodes.Contains(fieldInfo.NativeFieldCode.ToUpper()))
+                if (!writtenFieldCodes.Contains(fieldInfo.NativeFieldCode))
                 {
                     var fieldCode = fieldInfo.NativeFieldCode;
                     if (fieldCode.Equals(VorbisTag.VENDOR_METADATA_ID)) continue; // Specific mandatory field exclusive to VorbisComment
@@ -1928,7 +1928,7 @@ namespace ATL.AudioData.IO
                 if (dotIdx > -1)
                 {
                     actualFrameCode = frameCode[(dotIdx + 1)..];
-                    frameCode = frameCode[..dotIdx].ToUpper();
+                    frameCode = frameCode[..dotIdx];
                 }
             }
             // If frame is not standard, it has to be added through TXXX frame ("user-defined text information frame")

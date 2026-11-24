@@ -118,7 +118,7 @@ namespace ATL
         /// <param name="mime">MIME-type of the value</param>
         /// <param name="fileName">Associated file name</param>
         /// <param name="zone">File zone where the value is supposed to appear</param>
-        public MetaFieldInfo(MetaDataIOFactory.TagType tagType, string nativeFieldCode, string value = "", ushort streamNumber = 0, string language = "", string mime  = "", string fileName = "", string zone = "", bool caseMatters = true)
+        public MetaFieldInfo(MetaDataIOFactory.TagType tagType, string nativeFieldCode, string value = "", ushort streamNumber = 0, string language = "", string mime  = "", string fileName = "", string zone = "", bool caseMatters = false)
         {
             TagType = tagType; NativeFieldCode = nativeFieldCode; Value = value; StreamNumber = streamNumber; Language = language; MimeType = mime; FileName = fileName; Zone = zone;
             comparer = caseMatters ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -274,6 +274,12 @@ namespace ATL
             return Equals((MetaFieldInfo)obj);
         }
 
+        /// <summary>
+        /// Compare to objects
+        /// </summary>
+        /// <param name="left">The first</param>
+        /// <param name="right">The other</param>
+        /// <returns>Result of the comparison as per Equals convention</returns>
         public static bool Equals(MetaFieldInfo left, MetaFieldInfo right)
         {
             if (left is null && right is null) return true;

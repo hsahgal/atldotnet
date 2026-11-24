@@ -282,7 +282,7 @@ namespace ATL.AudioData.IO
         }
 
         // FLAC-specific override to handle multiple tags being authorized (e.g. representing multiple artists with multiple ARTIST tags)
-        public void SetMetaField(string ID, string data, bool readAllMetaFrames, string zone = DEFAULT_ZONE_NAME, byte tagVersion = 0, ushort streamNumber = 0, string language = "", bool caseMatters = false)
+        public void SetMetaField(string ID, string data, bool readAllMetaFrames, string zone = DEFAULT_ZONE_NAME, byte tagVersion = 0, ushort streamNumber = 0, string language = "")
         {
             // Finds the ATL field identifier
             Field supportedMetaID = getFrameMapping(zone, ID, tagVersion);
@@ -303,19 +303,20 @@ namespace ATL.AudioData.IO
                         targetData = tagData[supportedMetaID] + data;
                     }
                 }
-                base.SetMetaField(ID, targetData, readAllMetaFrames, zone, tagVersion, streamNumber, language, caseMatters: caseMatters);
+                base.SetMetaField(ID, targetData, readAllMetaFrames, zone, tagVersion, streamNumber, language);
             }
             else if (readAllMetaFrames && ID.Length > 0) // ...else store it in the additional fields Dictionary
             {
-                MetaFieldInfo fieldInfo = new MetaFieldInfo(getImplementedTagType(), ID, data, streamNumber, language, zone : zone, caseMatters: caseMatters);
+                MetaFieldInfo fieldInfo = new MetaFieldInfo(getImplementedTagType(), ID, data, streamNumber, language, zone : zone);
                 if (tagData.AdditionalFields.Contains(fieldInfo)) // Prevent duplicates
                 {
                     // If the value already exists, concatenate it with the new one (stores multiple values when implemented as successive additional fields)
-                    foreach (var info in tagData.AdditionalFields.Where(info => info.Equals(fieldInfo)))
-                    {
-                        fieldInfo.Value = info.Value + Settings.InternalValueSeparator + fieldInfo.Value;
-                    }
-
+                    // NOTE one of the cases I don't mind creating enumerator 
+                    fieldInfo.Value = string.Join(Settings.InternalValueSeparator, 
+                            tagData.AdditionalFields
+                            .Where(info => info.Equals(fieldInfo))
+                            .Select(i => i.Value))
+                        ;
                     tagData.AdditionalFields.Remove(fieldInfo);
                 }
 
@@ -536,7 +537,7 @@ namespace ATL.AudioData.IO
 
             IDictionary<Field, string> map = tag.ToStringMap();
             // Keep these in memory to prevent setting them twice using AdditionalFields
-            var writtenFieldCodes = new HashSet<string>();
+            var writtenFieldCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             // Supported textual fields
             foreach (Field frameType in map.Keys)
@@ -560,7 +561,7 @@ namespace ATL.AudioData.IO
                                 writeTextFrame(w, s, value);
                                 nbFrames++;
                             }
-                            writtenFieldCodes.Add(s.ToUpper());
+                            writtenFieldCodes.Add(s);
                         }
                         break;
                     }
@@ -577,9 +578,11 @@ namespace ATL.AudioData.IO
                     || writtenFieldCodes.Contains(fieldInfo.NativeFieldCode)) continue;
 
                 string value = FormatBeforeWriting(fieldInfo.Value);
-                if (value.Contains(Settings.DisplayValueSeparator + ""))
+                // avoid creating another string
+                if (value.IndexOf(Settings.DisplayValueSeparator) != -1)
                 {
                     // Write multiple fields when there are multiple values (specific to VorbisTag)
+                    // TODO moving to net10 would allow using Split on a Span avoiding more string creation  
                     string[] valueParts = value.Split(Settings.DisplayValueSeparator);
                     foreach (string valuePart in valueParts) writeTextFrame(w, fieldInfo.NativeFieldCode, valuePart);
                     nbFrames += (uint)valueParts.Length;
