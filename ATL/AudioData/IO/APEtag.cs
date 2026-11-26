@@ -48,7 +48,7 @@ namespace ATL.AudioData.IO
          *      - Disc number : "disc", "discnumber" frames
          *      - Album Artist : "albumartist", "album artist" frames
          */
-        private static readonly IDictionary<string, Field> frameMapping = new Dictionary<string, Field>
+        private static readonly IDictionary<string, Field> inputFrameMapping = new Dictionary<string, Field>(StringComparer.InvariantCultureIgnoreCase)
         {
             { "TITLE", Field.TITLE },
             { "ARTIST", Field.ARTIST },
@@ -73,9 +73,37 @@ namespace ATL.AudioData.IO
             { "LANGUAGE", Field.LANGUAGE },
             { "ISRC", Field.ISRC },
             { "CATALOGNUMBER", Field.CATALOG_NUMBER },
-            { "LYRICIST", Field.LYRICIST }
+            { "LYRICIST", Field.LYRICIST },
+            
+            
         };
 
+        private static readonly Dictionary<Field, string> outputFrameMapping = new()
+        {
+            {Field.ALBUM, "Album" },
+            {Field.ALBUM_ARTIST, "Album Artist" },
+            {Field.ARTIST, "Artist" },
+            {Field.BPM, "BPM" },
+            {Field.CATALOG_NUMBER, "CatalogNumber" },
+            {Field.COMMENT, "Comment" },
+            {Field.COMPOSER, "Composer" },
+            {Field.CONDUCTOR, "Conductor" },
+            {Field.COPYRIGHT, "Copyright" },
+            {Field.DISC_NUMBER_TOTAL, "Disc" },
+            {Field.ENCODED_BY, "EncodedBy" },
+            {Field.GENRE, "Genre" },
+            {Field.ISRC, "Isrc" },
+            {Field.LANGUAGE, "Language" },
+            {Field.LYRICIST, "Lyricist" },
+            {Field.LYRICS_UNSYNCH, "Lyrics" },
+            {Field.PUBLISHER, "Publisher" },
+            {Field.RATING, "Rating" },
+            {Field.RECORDING_DATE_OR_YEAR, "Year" },
+            {Field.TITLE, "Title" },
+            {Field.TRACK_NUMBER_TOTAL, "Track" },
+            
+        };
+        
         // Mix of classic APE mapping and its variations
         private static readonly IDictionary<string, PictureInfo.PIC_TYPE> picMapping = new Dictionary<string, PictureInfo.PIC_TYPE>
         {
@@ -189,10 +217,10 @@ namespace ATL.AudioData.IO
         protected override Field getFrameMapping(string zone, string ID, byte tagVersion)
         {
             Field supportedMetaId = Field.NO_FIELD;
-            ID = ID.Replace("\0", "").ToUpper();
+            ID = ID.Replace("\0", "");
 
             // Finds the ATL field identifier according to the APE version
-            if (frameMapping.TryGetValue(ID, out var value)) supportedMetaId = value;
+            if (inputFrameMapping.TryGetValue(ID, out var value)) supportedMetaId = value;
 
             return supportedMetaId;
         }
@@ -440,21 +468,17 @@ namespace ATL.AudioData.IO
             IDictionary<Field, string> map = tag.ToStringMap();
 
             // Supported textual fields
-            foreach (Field frameType in map.Keys)
+            foreach (var entry in map)
             {
-                foreach (string s in frameMapping.Keys)
+                if (entry.Value.Length == 0)
+                    continue;
+                
+                if (outputFrameMapping.TryGetValue(entry.Key, out string frameCode)) 
                 {
-                    if (frameType == frameMapping[s])
-                    {
-                        if (map[frameType].Length > 0) // No frame with empty value
-                        {
-                            string value = formatBeforeWriting(frameType, tag, map);
-                            writeTextFrame(w, s, value);
-                            writtenFieldCodes.Add(s);
-                            nbFrames++;
-                        }
-                        break;
-                    }
+                    string value = formatBeforeWriting(entry.Key, tag, map);
+                    writeTextFrame(w, frameCode, value);
+                    writtenFieldCodes.Add(frameCode);
+                    nbFrames++;
                 }
             }
 
