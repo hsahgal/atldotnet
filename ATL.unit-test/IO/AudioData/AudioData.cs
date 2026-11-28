@@ -290,7 +290,7 @@ namespace ATL.test.IO
         public void Audio_DSF_PSF()
         {
             testGenericAudio("PSF/psf.psf", CID_PSF, 1, 159000, 10, -1, 44100, false, CF_SEQ_WAV, STEREO, "Portable Sound Format / Playstation", 0, 204788);
-            testGenericAudio("PSF/nolength.psf", CID_PSF, 1, 180000, 13, -1, 44100, false, CF_SEQ_WAV, STEREO, "Portable Sound Format / Playstation", 0, 287437);
+            testGenericAudio("PSF/nolength.PSF", CID_PSF, 1, 180000, 13, -1, 44100, false, CF_SEQ_WAV, STEREO, "Portable Sound Format / Playstation", 0, 287437);
             testGenericAudio("DSF/adgpp_PLAY_01_05.dsf", CID_PSF, 18, 26200, 0, -1, 44100, false, CF_SEQ_WAV, STEREO, "Portable Sound Format / Dreamcast", 0, 30, true, 1);
         }
 
@@ -324,8 +324,8 @@ namespace ATL.test.IO
         public void Audio_WV()
         {
             // V3 won't be auto-detected from data stream
-            testGenericAudio("WV/losslessv3.wv", CID_WAVPACK, CID_WAVPACK, 7646, 659, -1, 44100, false, CF_LOSSLESS, STEREO, "WAVPack", 44, 629811, false);
-            testGenericAudio("WV/lossyv3.wv", CID_WAVPACK, CID_WAVPACK, 7646, 342, 4, 44100, false, CF_LOSSY, STEREO, "WAVPack", 44, 326945, false);
+            testGenericAudio("WV/losslessv3.WV", CID_WAVPACK, CID_WAVPACK, 7646, 659, -1, 44100, false, CF_LOSSLESS, STEREO, "WAVPack", 44, 629811, false);
+            testGenericAudio("WV/lossyv3.WV", CID_WAVPACK, CID_WAVPACK, 7646, 342, 4, 44100, false, CF_LOSSY, STEREO, "WAVPack", 44, 326945, false);
             testGenericAudio("WV/lossyv440.wv", CID_WAVPACK, CID_WAVPACK, 7646, 206, 16, 44100, false, CF_LOSSY, STEREO, "WAVPack", 132, 196658);
             testGenericAudio("WV/losslessv4.wv", CID_WAVPACK, CID_WAVPACK, 6082, 645, 16, 44100, false, CF_LOSSLESS, STEREO, "WAVPack", 154, 490420);
         }

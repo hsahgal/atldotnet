@@ -54,7 +54,7 @@ namespace ATL.test
             Assert.AreEqual(24, props.ColorDepth);
 
             // This one uses alternate SOF headers (0xFF 0xC2) instead of the usual 0xFF 0xC0
-            data = File.ReadAllBytes(TestUtils.GetResourceLocationRoot() + "_Images/dims_alt.jpg");
+            data = File.ReadAllBytes(TestUtils.GetResourceLocationRoot() + "_Images/dims_alt.JPG");
             props = ImageUtils.GetImageProperties(data);
 
             Assert.AreEqual(552, props.Width);
