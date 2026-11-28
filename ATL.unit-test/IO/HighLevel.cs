@@ -775,13 +775,11 @@ namespace ATL.test.IO
                 if (pic.PicType.Equals(PictureInfo.PIC_TYPE.Front))
                 {
                     foundFront = true;
-                    using (Image picture = Image.FromStream(new MemoryStream(pic.PictureData)))
-                    {
-                        // Properties of updated picture (pic2.jpg)
-                        Assert.AreEqual(picture.RawFormat, System.Drawing.Imaging.ImageFormat.Jpeg);
-                        Assert.AreEqual(900, picture.Width);
-                        Assert.AreEqual(290, picture.Height);
-                    }
+                    var imgProps = ImageUtils.GetImageProperties(pic.PictureData);
+                    // Properties of updated picture (pic2.jpg)
+                    Assert.AreEqual(ImageFormat.Jpeg, imgProps.Format);
+                    Assert.AreEqual(900, imgProps.Width);
+                    Assert.AreEqual(290, imgProps.Height);
                 }
                 if (pic.PicType.Equals(PictureInfo.PIC_TYPE.Icon)) foundIcon = true;
                 // TODO test reading an unsupported pic code ?
@@ -923,6 +921,26 @@ namespace ATL.test.IO
             Assert.AreEqual(0, theTrack.TrackTotal);
             Assert.AreEqual(0, theTrack.DiscNumber);
             Assert.AreEqual(0, theTrack.DiscTotal);
+
+            // Get rid of the working copy
+            if (Settings.DeleteAfterSuccess) File.Delete(testFileLocation);
+        }
+
+        [TestMethod]
+        public void TagIO_RW_UpdateTrackTotalDiscTotalOnly()
+        {
+            string testFileLocation = TestUtils.CopyAsTempTestFile("MP3/empty.mp3");
+            Track theTrack = new Track(testFileLocation);
+
+            theTrack.TrackTotal = 2;
+            theTrack.DiscTotal = 4;
+
+            Assert.IsTrue(theTrack.Save());
+
+            theTrack = new Track(testFileLocation);
+
+            Assert.AreEqual(2, theTrack.TrackTotal);
+            Assert.AreEqual(4, theTrack.DiscTotal);
 
             // Get rid of the working copy
             if (Settings.DeleteAfterSuccess) File.Delete(testFileLocation);
